@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>+1 Money Per Click Script — Windows Auto-Clicker</title>
+<meta name="description" content="+1 Money Per Click Script — an auto-clicker that adds +1 money per click with adjustable click rate, multiplier stacking, and save/load of earnings progress." />
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --bg-deep: #05060f;
+    --bg-navy: #0a0f2c;
+    --bg-indigo: #141a3d;
+    --bg-charcoal: #0e1020;
+    --text: #e8ecf8;
+    --text-dim: #9aa3c4;
+    --accent: #6c8cff;
+    --accent-2: #b06cff;
+    --accent-3: #22d3ee;
+    --green: #34d399;
+    --card-bg: rgba(255, 255, 255, 0.035);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --radius: 16px;
+    --nav-h: 68px;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 24px);
+  }
+
+  body {
+    font-family: "Segoe UI", "Inter", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 15% -10%, rgba(108, 140, 255, 0.22), transparent 60%),
+      radial-gradient(ellipse 70% 55% at 88% 5%, rgba(176, 108, 255, 0.18), transparent 62%),
+      radial-gradient(ellipse 90% 70% at 50% 110%, rgba(34, 211, 238, 0.10), transparent 65%),
+      linear-gradient(165deg, #05060f 0%, #0a0f2c 38%, #101538 62%, #0b0d1c 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    background: rgba(10, 14, 34, 0.55);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 4px 18px rgba(108, 140, 255, 0.45);
+    flex-shrink: 0;
+  }
+
+  .brand span.grad {
+    background: linear-gradient(90deg, #a9bcff, #d9b3ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 0.93rem;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .nav-links a {
+    transition: color 0.2s ease;
+    position: relative;
+  }
+
+  .nav-links a:hover {
+    color: #fff;
+  }
+
+  .nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition: width 0.25s ease;
+  }
+
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    color: #070a18;
+    background: linear-gradient(135deg, #8aa4ff 0%, #b98aff 100%);
+    box-shadow: 0 8px 26px rgba(126, 140, 255, 0.38);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(126, 140, 255, 0.55);
+  }
+
+  .btn-ghost {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .btn-ghost:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .nav .btn-primary {
+    padding: 10px 20px;
+    font-size: 0.88rem;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    padding: 92px 0 80px;
+    text-align: center;
+    position: relative;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px 7px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #cdd8ff;
+    background: rgba(108, 140, 255, 0.09);
+    border: 1px solid rgba(140, 165, 255, 0.32);
+    box-shadow: inset 0 0 24px rgba(108, 140, 255, 0.08);
+    margin-bottom: 28px;
+  }
+
+  .pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.16);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.16); }
+    50% { box-shadow: 0 0 0 7px rgba(52, 211, 153, 0.05); }
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5.6vw, 4rem);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    font-weight: 800;
+    margin-bottom: 22px;
+  }
+
+  .grad-text {
+    background: linear-gradient(100deg, #9db4ff 0%, #c79bff 45%, #6ee7f0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .hero p.lead {
+    max-width: 660px;
+    margin: 0 auto 36px;
+    font-size: clamp(1rem, 1.6vw, 1.12rem);
+    color: var(--text-dim);
+  }
+
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 52px;
+  }
+
+  .hero-actions .btn {
+    padding: 15px 30px;
+    font-size: 1rem;
+    border-radius: 14px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  .stat {
+    padding: 18px 14px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .stat:hover {
+    transform: translateY(-3px);
+    border-color: rgba(140, 165, 255, 0.35);
+  }
+
+  .stat .val {
+    display: block;
+    font-size: 1.18rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .stat .lbl {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section {
+    padding: 84px 0;
+  }
+
+  .sec-head {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .sec-eyebrow {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .sec-head h2 {
+    font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .sec-head p {
+    max-width: 600px;
+    margin: 0 auto;
+    color: var(--text-dim);
+    font-size: 1rem;
+  }
+
+  /* ---------- FEATURES ---------- */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    position: relative;
+    padding: 30px 26px 28px;
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.018));
+    border: 1px solid var(--card-border);
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    opacity: 0.9;
+  }
+
+  .card:hover {
+    transform: translateY(-7px);
+    border-color: rgba(140, 165, 255, 0.38);
+    box-shadow: 0 22px 48px -18px rgba(108, 140, 255, 0.5);
+  }
+
+  .card .icon {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 13px;
+    font-size: 1.45rem;
+    margin-bottom: 18px;
+    background: rgba(108, 140, 255, 0.11);
+    border: 1px solid rgba(140, 165, 255, 0.22);
+  }
+
+  .card h3 {
+    font-size: 1.06rem;
+    font-weight: 700;
+    margin-bottom: 9px;
+    letter-spacing: -0.01em;
+  }
+
+  .card p {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    line-height: 1.62;
+  }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps {
+    max-width: 720px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 16px;
+  }
+
+  .steps::before {
+    content: "";
+    position: absolute;
+    left: 33px;
+    top: 26px;
+    bottom: 26px;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
+    opacity: 0.55;
+  }
+
+  .step {
+    position: relative;
+    display: flex;
+    gap: 24px;
+    padding: 14px 0 34px;
+  }
+
+  .step:last-child {
+    padding-bottom: 0;
+  }
+
+  .step-num {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #0a0e20;
+    background: linear-gradient(135deg, #a9bcff, #c79bff);
+    box-shadow: 0 0 0 6px rgba(10, 14, 34, 0.9), 0 6px 20px rgba(108, 140, 255, 0.45);
+  }
+
+  .step-body h3 {
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    margin-top: 4px;
+  }
+
+  .step-body p {
+    font-size: 0.93rem;
+    color: var(--text-dim);
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-list {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  details.faq {
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    overflow: hidden;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+
+  details.faq[open] {
+    border-color: rgba(140, 165, 255, 0.4);
+    background: rgba(108, 140, 255, 0.055);
+  }
+
+  details.faq summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 20px 54px 20px 22px;
+    font-weight: 650;
+    font-size: 0.98rem;
+    position: relative;
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  details.faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.faq summary:hover {
+    color: #fff;
+  }
+
+  details.faq summary::after {
+    content: "+";
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(0deg);
+    font-size: 1.35rem;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--accent);
+    transition: transform 0.28s ease, color 0.28s ease;
+    transform-origin: center;
+  }
+
+  details.faq[open] summary::after {
+    content: "+";
+    transform: translateY(-50%) rotate(45deg);
+    color: var(--accent-2);
+  }
+
+  .faq-body {
+    padding: 0 22px 22px;
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    animation: reveal 0.3s ease;
+  }
+
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- CTA BANNER ---------- */
+  .cta-banner {
+    position: relative;
+    border-radius: 24px;
+    padding: 64px 36px;
+    text-align: center;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 60% 100% at 50% 0%, rgba(140, 160, 255, 0.28), transparent 70%),
+      radial-gradient(ellipse 55% 90% at 20% 110%, rgba(176, 108, 255, 0.22), transparent 70%),
+      radial-gradient(ellipse 55% 90% at 85% 100%, rgba(34, 211, 238, 0.16), transparent 70%),
+      linear-gradient(180deg, rgba(20, 26, 61, 0.9), rgba(10, 13, 30, 0.95));
+    border: 1px solid rgba(140, 165, 255, 0.28);
+    box-shadow: 0 30px 80px -30px rgba(108, 140, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .cta-banner h2 {
+    font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  .cta-banner p {
+    max-width: 540px;
+    margin: 0 auto 32px;
+    color: var(--text-dim);
+    font-size: 1rem;
+  }
+
+  .cta-banner .btn {
+    padding: 16px 34px;
+    font-size: 1.02rem;
+    border-radius: 14px;
+  }
+
+  .cta-note {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: #7f89ab;
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 40px 0;
+    margin-top: 40px;
+  }
+
+  .foot-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 0.87rem;
+    color: var(--text-dim);
+  }
+
+  .foot-inner a {
+    color: #b8c6ff;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+
+  .foot-inner a:hover {
+    color: #fff;
+  }
+
+  .foot-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .nav-links {
+      gap: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .nav-links {
+      display: none;
+    }
+    .nav {
+      height: 62px;
+    }
+    .brand {
+      font-size: 0.96rem;
+    }
+    .hero {
+      padding: 62px 0 56px;
+    }
+    .hero-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hero-actions .btn {
+      width: 100%;
+    }
+    .stats {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+    section {
+      padding: 60px 0;
+    }
+    .steps {
+      padding-left: 4px;
+    }
+    .steps::before {
+      left: 21px;
+    }
+    .step {
+      gap: 16px;
+    }
+    .step-num {
+      width: 34px;
+      height: 34px;
+      font-size: 0.85rem;
+    }
+    .cta-banner {
+      padding: 48px 22px;
+      border-radius: 18px;
+    }
+    .foot-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .wrap {
+      padding: 0 18px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a href="#top" class="brand">
+        <span class="brand-mark">💰</span>
+        <span>Money<span class="grad">PerClick</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <a class="btn btn-primary" href="https://gitscore.cc" target="_blank" rel="noopener noreferrer">Download</a>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="wrap">
+      <div class="pill">
+        <span class="dot"></span>
+        +1 Money Per Click Script · Windows Auto-Clicker
+      </div>
+      <h1>
+        Stack clicks,<br />
+        <span class="grad-text">stack your money.</span>
+      </h1>
+      <p class="lead">
+        The +1 Money Per Click Script is a lightweight Windows auto-clicker that adds $1 per click,
+        with adjustable click rate, multiplier stacking, and save/load of your earnings progress —
+        so your balance keeps growing even while you're away.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://gitscore.cc" target="_blank" rel="noopener noreferrer">
+          ⬇ Download for Windows
+        </a>
+        <a class="btn btn-ghost" href="https://gitscore.cc" target="_blank" rel="noopener noreferrer">
+          ⭐ View on GitHub
+        </a>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="val">48,200+</span>
+          <span class="lbl">Downloads</span>
+        </div>
+        <div class="stat">
+          <span class="val">v2.4.1</span>
+          <span class="lbl">Latest version</span>
+        </div>
+        <div class="stat">
+          <span class="val">Windows 10 / 11</span>
+          <span class="lbl">Platform</span>
+        </div>
+        <div class="stat">
+          <span class="val">Free &amp; open source</span>
+          <span class="lbl">License</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="sec-eyebrow">Features</span>
+        <h2>Everything an auto-clicker should be</h2>
+        <p>Built for players who want a clean, reliable +1 money per click loop without touching the mouse.</p>
+      </div>
+      <div class="features-grid">
+        <article class="card">
+          <div class="icon">💵</div>
+          <h3>+1 Money Per Click</h3>
+          <p>Every registered click adds exactly $1 to your balance. No hidden math, no manual counting — the script handles the ledger for you.</p>
+        </article>
+        <article class="card">
+          <div class="icon">
